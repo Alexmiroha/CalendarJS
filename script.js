@@ -5,6 +5,7 @@ let events = localStorage.getItem('events') ? JSON.parse(localStorage.getItem('e
 const calendar = document.getElementById('calendar');
 const weekdays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 const newEventModal = document.getElementById('newEventModal');
+const deleteEventModal = document.getElementById('deleteEventModal');
 const backDrop = document.getElementById('modalBackDrop');
 const eventTitleInput = document.getElementById('eventTitleInput');
 
@@ -15,7 +16,8 @@ function openModal(date) {
     const eventForDay = events.find(e => e.date === clicked);
 
     if (eventForDay) {
-        alert('Event already exists');
+        document.getElementById('eventText').innerText = eventForDay.title;
+        deleteEventModal.style.display = 'block';
     } else {
         newEventModal.style.display = 'block';
         backDrop.style.display = 'block';
@@ -52,10 +54,25 @@ function load() {
         const daySquare = document.createElement('div');
         daySquare.classList.add('day');
 
+        const dayString = `${i - paddingDays}/${month + 1}/${year}`
+
         if (i > paddingDays) {
             daySquare.innerText = i - paddingDays;
 
-            daySquare.addEventListener('click', () => openModal(`${i - paddingDays}/${month + 1}/${year}`));
+            const eventForDay = events.find(e => e.date === dayString);
+
+            if (i - paddingDays === day && nav === 0) {
+                daySquare.id = 'currentDay';
+            }
+
+            if (eventForDay) {
+                const eventDiv = document.createElement('div');
+                eventDiv.classList.add('event');
+                eventDiv.innerText = eventForDay.title;
+                daySquare.appendChild(eventDiv);
+            }
+
+            daySquare.addEventListener('click', () => openModal(dayString));
         } else {
             daySquare.classList.add('padding');
         }
@@ -69,6 +86,7 @@ function load() {
 
 function closeModal() {
     newEventModal.style.display = 'none';
+    deleteEventModal.style.display = 'none';
     backDrop.style.display = 'none';
     eventTitleInput.value = '';
     clicked = null;
@@ -91,6 +109,12 @@ function saveEvent() {
     }
 }
 
+function deleteEvent() {
+    events = events.filter(e => e.date !== clicked);
+    localStorage.setItem('events', JSON.stringify(events));
+    closeModal();
+}
+
 function initButtons() {
     document.getElementById('nextButton').addEventListener('click', () => {
         nav++;
@@ -106,6 +130,13 @@ function initButtons() {
         saveEvent();
     });
     document.getElementById('cancelButton').addEventListener('click', () => {
+        closeModal();
+    });
+
+    document.getElementById('deleteButton').addEventListener('click', () => {
+        deleteEvent();
+    });
+    document.getElementById('closeButton').addEventListener('click', () => {
         closeModal();
     });
 
